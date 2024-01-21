@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Button, FlatList, TouchableOpacity, ImageBackground, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Notifications } from 'react-native-notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import AddMedicineScreen from "./AddMedicineScreen";
+
+// Import your background image
 import backgroundImg from '../assets/images/background.png';
 
 // MedicineCard component for rendering each medicine item
@@ -14,7 +15,7 @@ const MedicineCard = ({ medicine, onPress }) => {
     <TouchableOpacity onPress={onPress} style={styles.card}>
       <Text style={styles.cardText}>{medicine.name} - {medicine.dosage}</Text>
       <Text style={styles.cardText}>
-        Reminder Time: {medicine.reminderTime ? medicine.reminderTime.toLocaleTimeString() : 'N/A'}
+        Reminder Time: {medicine.reminderTime.toLocaleTimeString()}
       </Text>
     </TouchableOpacity>
   );
@@ -28,22 +29,18 @@ const MedicationReminders = ({ navigation }) => {
   useEffect(() => {
     // Configure notifications when component mounts
     Notifications.registerRemoteNotifications();
-    loadMedicinesFromStorage();
   }, []);
 
-  const addMedicine = async (medicine) => {
-    const updatedMedicines = [...medicines, medicine];
-    setMedicines(updatedMedicines);
+  const addMedicine = (medicine) => {
+    setMedicines([...medicines, medicine]);
     scheduleNotification(medicine);
-    await saveMedicinesToStorage(updatedMedicines);
   };
 
-  const editMedicine = async (index, updatedMedicine) => {
+  const editMedicine = (index, updatedMedicine) => {
     const updatedMedicines = [...medicines];
     updatedMedicines[index] = updatedMedicine;
     setMedicines(updatedMedicines);
     navigation.goBack();
-    await saveMedicinesToStorage(updatedMedicines);
   };
 
   const showDateTimePicker = () => {
@@ -63,37 +60,13 @@ const MedicationReminders = ({ navigation }) => {
     Notifications.postLocalNotification({
       title: "Medication Reminder",
       body: notificationBody,
-      payload: {},
+      payload: {
+        /* Any custom data you want to send with the notification */
+      },
       silent: false,
     });
   };
-
-  const loadMedicinesFromStorage = async () => {
-    try {
-      const storedMedicines = await AsyncStorage.getItem('medicines');
-      if (storedMedicines) {
-        const parsedMedicines = JSON.parse(storedMedicines);
-
-        // Ensure that each medicine has a valid Date object for reminderTime
-        const sanitizedMedicines = parsedMedicines.map(medicine => ({
-          ...medicine,
-          reminderTime: medicine.reminderTime ? new Date(medicine.reminderTime) : null,
-        }));
-
-        setMedicines(sanitizedMedicines);
-      }
-    } catch (error) {
-      console.error('Error loading medicines from AsyncStorage:', error);
-    }
-  };
-
-  const saveMedicinesToStorage = async (updatedMedicines) => {
-    try {
-      await AsyncStorage.setItem('medicines', JSON.stringify(updatedMedicines));
-    } catch (error) {
-      console.error('Error saving medicines to AsyncStorage:', error);
-    }
-  };
+  
 
   return (
     <ImageBackground source={backgroundImg} style={styles.background}>

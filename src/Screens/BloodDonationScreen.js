@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CheckBox from "@react-native-community/checkbox";
+import { useNavigation } from "@react-navigation/native";
 
 const BloodDonationScreen = () => {
   const [name, setName] = useState("");
@@ -21,20 +21,81 @@ const BloodDonationScreen = () => {
   const [hasDisease, setHasDisease] = useState(false);
   const [birthDate, setBirthDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+    const [hospitalData, setHospitalData] = useState([]);
+  const [selectedHospital, setSelectedHospital] = useState("");
+    const navigation = useNavigation();
 
-  const submitForm = () => {
-    // Handle the form submission logic here
-    console.log("Form submitted:", {
-      name,
-      bloodType,
-      contactNumber,
-      selectedState,
-      selectedCity,
-      recentDonation,
-      hasDisease,
-      birthDate,
-    });
-    // You can add further logic, such as sending the form data to a server
+
+
+  useEffect(() => {
+  const fetchHospitalData = async () => {
+    try {
+      const response = await fetch(
+        "https://healthbybyteblitz.twilightparadox.com/api/auth/hospitalfetch",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Adjust the body according to the API requirements
+          body: JSON.stringify({
+            // Include any necessary parameters for the POST request
+          }),
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setHospitalData(data);
+      } else {
+        console.error(
+          "Error fetching hospital data:",
+          response.status,
+          response.statusText
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching hospital data:", error.message);
+    }
+  };
+
+  fetchHospitalData();
+}, []);
+  const submitForm = async () => {
+    try {
+      const apiUrl = "https://healthbybyteblitz.twilightparadox.com/api/auth/blooddonation";
+      const formData = {
+        name,
+        blood_type: bloodType,
+        contact_number: contactNumber,
+        state: selectedState,
+        city: selectedCity,
+        recent_donation: recentDonation,
+        has_disease: hasDisease,
+        birth_date: birthDate.toISOString().split("T")[0],
+        hospital_id: selectedHospital, // Include selected hospital ID
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+if (response.ok) {
+        const responseData = await response.json();
+        console.log("API Response:", responseData);
+        
+        // Navigate to the home screen upon successful submission
+        navigation.navigate("Tabs"); // Replace "Home" with the name of your home screen
+      } else {
+        // Handle error, show an error message
+        console.error("API Error:", response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
   };
 
   const handleDateChange = (event, date) => {
@@ -81,6 +142,22 @@ const BloodDonationScreen = () => {
         <RNPicker.Item label="Karnataka" value="Karnataka" />
         <RNPicker.Item label="Tamil Nadu" value="Tamil Nadu" />
       </RNPicker>
+       <View style={styles.pickerContainer}>
+        <Text style={styles.label}>Select Hospital:</Text>
+        <RNPicker
+          style={styles.picker}
+          selectedValue={selectedHospital}
+          onValueChange={(value) => setSelectedHospital(value)}
+        >
+          {hospitalData.map((hospital) => (
+            <RNPicker.Item
+              key={hospital.id}
+              label={hospital.name}
+              value={hospital.id}
+            />
+          ))}
+        </RNPicker>
+      </View>
       <Text style={styles.label}>Select City:</Text>
       <RNPicker
         style={styles.picker}
@@ -107,7 +184,10 @@ const BloodDonationScreen = () => {
       </View>
       <View style={styles.datePickerContainer}>
         <Text style={styles.label}>Select Birth Date:</Text>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+        <TouchableOpacity
+          style={styles.datePicker}
+          onPress={() => setShowDatePicker(true)}
+        >
           <Text style={styles.dateText}>
             {birthDate.toLocaleDateString("en-US")}
           </Text>
@@ -121,65 +201,91 @@ const BloodDonationScreen = () => {
           />
         )}
       </View>
-      <Button title="Submit" onPress={submitForm} />
+      <TouchableOpacity style={styles.submitButton} onPress={submitForm}>
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
     </View>
   );
 };
+
+
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    alignItems: "flex-start", // Align left
+    alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f8f8", // Light background color
+   
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     fontWeight: "bold",
-    color: "#e74c3c", // Theme color
+    color: "red", // Updated text color
   },
   input: {
     height: 40,
-    borderColor: "#bdc3c7", // Light border color
+    borderColor: "#ecf0f1",
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
     width: 370,
     borderRadius: 5,
-    backgroundColor: "#ecf0f1", // Light background color
+    backgroundColor: "#ecf0f1",
+    color: "#333", // Updated text color
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
     alignSelf: "flex-start",
-    color: "#333", // Dark text color
+    color: "black", // Updated text color
   },
   picker: {
     height: 40,
     width: 370,
     marginBottom: 10,
     borderRadius: 5,
-    backgroundColor: "#ecf0f1", // Light background color
+    backgroundColor: "#ecf0f1",
+    color: "#333", // Updated text color
   },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
+   justifyContent:"flex-start"
   },
   checkboxLabel: {
     fontSize: 16,
-    marginLeft: 8, // Add margin for better separation
-    color: "#333", // Dark text color
+    color: "black", // Updated text color
   },
   datePickerContainer: {
     marginBottom: 10,
   },
+  datePicker: {
+    height: 40,
+    width: 370,
+    marginBottom: 10,
+    borderRadius: 5,
+    backgroundColor: "#ecf0f1",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
   dateText: {
     fontSize: 16,
-    marginBottom: 10,
-    color: "#3498db", // Theme color
+    color: "#3498db", // Updated text color
+  },
+  submitButton: {
+    backgroundColor: "#e74c3c", // Updated submit button color
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  submitButtonText: {
+    color: "#fff", // Updated text color
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 

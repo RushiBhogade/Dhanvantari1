@@ -1,7 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { Picker as RNPicker } from "@react-native-picker/picker";
-import CheckBox from '@react-native-community/checkbox';
+import CheckBox from "@react-native-community/checkbox";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 const OrganDonations = ({ navigation }) => {
@@ -19,28 +27,102 @@ const OrganDonations = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [registrationDate, setRegistrationDate] = useState(new Date());
+  const [hospitalData, setHospitalData] = useState([]);
+  const [selectedHospital, setSelectedHospital] = useState("");
+  const [fullName, setFullName] = useState("");
 
-  const handleOrganDonation = () => {
-    // Handle submission logic here
-    const formData = {
-      selectedOrgan,
-      donatedRecently,
-      hasDisease,
-      selectedState,
-      selectedCity,
-      birthdate,
-      phoneNumber,
-      medicalConditions,
-      allergies,
-      medications,
-      email,
-      address,
-      registrationDate,
+useEffect(() => {
+  const fetchHospitalData = async () => {
+    try {
+      const response = await fetch(
+        "https://healthbybyteblitz.twilightparadox.com/api/auth/hospitalfetch",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Adjust the body according to the API requirements
+          body: JSON.stringify({
+            // Include any necessary parameters for the POST request
+          }),
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setHospitalData(data);
+      } else {
+        console.error(
+          "Error fetching hospital data:",
+          response.status,
+          response.statusText
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching hospital data:", error.message);
+    }
+  };
+
+  fetchHospitalData();
+}, []);
+
+
+const handleOrganDonation = async () => {
+  try {
+    // Prepare the request body
+    const requestBody = {
+      full_name: fullName,
+      phone_no: phoneNumber,
+      organ: selectedOrgan,
+      donated: donatedRecently,
+      disease: hasDisease,
+      state: selectedState,
+      city: selectedCity,
+      birthdate: birthdate.toISOString().split("T")[0],
+      medical_conditions: medicalConditions,
+      allergies: allergies,
+      medications: medications,
+      email: email,
+      address: address,
+      hospital_id: selectedHospital, // Include selected hospital ID
     };
 
-    // Perform your logic to submit the form data (e.g., API call, database update)
-    console.log("Submitted Form Data:", formData);
-  };
+    // Log the data being sent to the API
+    console.log("Data Sent to API:", requestBody);
+
+    // Make the API call
+    const response = await fetch(
+      "https://healthbybyteblitz.twilightparadox.com/api/auth/organdonation",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    // Check if the response is successful
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log("API Response:", responseData);
+
+      // Assuming the API response contains a 'msg' field indicating success
+      if (responseData.msg === "Organ donation details added successfully") {
+        // Navigate to the home screen upon successful submission
+        navigation.navigate("Tabs"); // Replace 'Home' with the name of your home screen
+      } else {
+        // Handle error, show an error message
+        console.error("API Error:", "Unexpected response format");
+      }
+    } else {
+      // Handle error, show an error message
+      console.error("API Error:", response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error("Error:", error.message);
+  }
+};
+
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -56,6 +138,14 @@ const OrganDonations = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Organ Donation Form</Text>
+         <Text style={styles.label}>Enter Full Name:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Full Name"
+        value={fullName}
+        onChangeText={(text) => setFullName(text)}
+        
+      />
       <Text style={styles.label}>Enter Phone Number:</Text>
       <TextInput
         style={styles.input}
@@ -111,9 +201,29 @@ const OrganDonations = ({ navigation }) => {
         {/* Add more options as needed */}
       </RNPicker>
 
+      <Text style={styles.label}>Select Hospital:</Text>
+      <RNPicker
+        selectedValue={selectedHospital}
+        onValueChange={(itemValue) => setSelectedHospital(itemValue)}
+        style={styles.picker}
+      >
+        {hospitalData.map((hospital) => (
+          <RNPicker.Item
+            key={hospital.id}
+            label={hospital.name}
+            value={hospital.id}
+          />
+        ))}
+      </RNPicker>
+
       <Text style={styles.label}>Select Birthdate:</Text>
-      <TouchableOpacity onPress={showDatePickerModal} style={styles.datePickerContainer}>
-        <Text style={styles.dateText}>{birthdate.toLocaleDateString("en-US")}</Text>
+      <TouchableOpacity
+        onPress={showDatePickerModal}
+        style={styles.datePickerContainer}
+      >
+        <Text style={styles.dateText}>
+          {birthdate.toLocaleDateString("en-US")}
+        </Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
