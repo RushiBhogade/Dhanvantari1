@@ -1,132 +1,100 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Button } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const DoctorAppointments = ({ navigation }) => {
-  const [doctors, setDoctors] = useState([
-    { id: 1, name: "Dr. John Doe", specialization: "Cardiologist" },
-    { id: 2, name: "Dr. Jane Smith", specialization: "Dermatologist" },
-    // Add more doctor details as needed
-  ]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [isAppointmentConfirmed, setAppointmentConfirmed] = useState(false);
+const HospitalList = () => {
+  const navigation = useNavigation();
+  const [hospitals, setHospitals] = useState([]);
 
-  const handleCardClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setModalVisible(true);
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://healthbybyteblitz.twilightparadox.com/api/auth/hospitalfetch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        });
 
-  const handleAppointmentConfirm = () => {
-    // Handle appointment confirmation logic here
-    const updatedDoctors = doctors.filter((doctor) => doctor.id !== selectedDoctor.id);
-    setDoctors(updatedDoctors);
-    setAppointmentConfirmed(true);
-    // Add logic for navigating to success screen or showing a success message
-  };
+        if (response.ok) {
+          const data = await response.json();
+          setHospitals(data);
+        } else {
+          console.error('Error fetching data:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const renderHospitalItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => navigation.navigate('BookAppointment', { hospitalId: item.id, hospitalName: item.name })}
+    >
+      <View style={styles.rowContainer}>
+        <Text style={styles.hospitalName}>{item.name}</Text>
+      </View>
+      <Text style={styles.hospitalInfo}>{`Phone: ${item.phone}`}</Text>
+      <Text style={styles.hospitalInfo}>{`City: ${item.city}`}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      {doctors.map((doctor) => (
-        <TouchableOpacity
-          key={doctor.id}
-          style={styles.card}
-          onPress={() => handleCardClick(doctor)}
-        >
-          <Text style={styles.cardTitle}>{doctor.name}</Text>
-          <Text style={styles.cardText}>{doctor.specialization}</Text>
-        </TouchableOpacity>
-      ))}
-
-      {/* Modal for confirming the appointment */}
-      <Modal visible={isModalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {!isAppointmentConfirmed ? (
-              <>
-                <Text style={styles.modalTitle}>Confirm Appointment</Text>
-                <Text style={styles.modalText}>Do you want to schedule an appointment with {selectedDoctor?.name}?</Text>
-                <View style={styles.modalButtons}>
-                  <Button title="Yes, Confirm" onPress={handleAppointmentConfirm} />
-                  <Button title="Cancel" onPress={() => setModalVisible(false)} />
-                </View>
-              </>
-            ) : (
-              <>
-                <Text style={styles.confirmationText}>Appointment Confirmed!</Text>
-                <Button title="OK" onPress={() => setModalVisible(false)} />
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+      <Text style={styles.title}>List of Hospitals</Text>
+      <FlatList
+        data={hospitals}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderHospitalItem}
+        contentContainerStyle={styles.flatListContainer}
+      />
     </View>
   );
 };
 
+const { width } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  card: {
-    width: "48%",
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 16,
-    color: "#555",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
     padding: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  flatListContainer: {
+    paddingBottom: 20,
+  },
+  itemContainer: {
+    marginBottom: 20,
+    padding: 15,
     borderRadius: 10,
-    elevation: 5,
+    backgroundColor: '#fff',
+    elevation: 3,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
-  modalText: {
+  hospitalName: {
     fontSize: 18,
-    marginBottom: 16,
-    textAlign: "center",
+    fontWeight: 'bold',
+    color: '#3498db',
   },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  confirmationText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
+  hospitalInfo: {
+    fontSize: 14,
+    color: '#555',
   },
 });
 
-export default DoctorAppointments;
+export default HospitalList;

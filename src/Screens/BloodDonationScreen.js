@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
+  StyleSheet,Alert,
   TouchableOpacity,
 } from "react-native";
 import { Picker as RNPicker } from "@react-native-picker/picker";
@@ -86,7 +86,13 @@ const BloodDonationScreen = () => {
 if (response.ok) {
         const responseData = await response.json();
         console.log("API Response:", responseData);
-        
+        Alert.alert(
+          "Blood Donation Form Submitted",
+          "Thank you for your donation!"
+        );
+
+        // Navigate to the home screen upon successful submission
+        navigation.navigate("Tabs");
         // Navigate to the home screen upon successful submission
         navigation.navigate("Tabs"); // Replace "Home" with the name of your home screen
       } else {

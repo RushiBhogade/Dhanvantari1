@@ -17,6 +17,8 @@ import BloodDonationScreen from '../Screens/BloodDonationScreen';
 import EditMedicine from '../Screens/EditMedicine';
 import OrganDonations from '../Screens/OrganDonation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BookAppointment from '../Screens/bookappoint';
+import ChatbotScreenM from '../Screens/ChatBotScreenM';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +34,7 @@ function AppNavigator() {
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Tabs" component={BottomTabNavigator}options={{ headerShown: false }}/>
         <Stack.Screen name="Chatbot" component={ChatbotScreen} />
+        <Stack.Screen name="Mental Health Bot" component={ChatbotScreenM} />
         <Stack.Screen name="DoctorAppointments" component={DoctorAppointments} />
         <Stack.Screen name="OrganDonation" component={OrganDonation} />
         <Stack.Screen name="NearbyHospitals" component={NearbyHospitals} />
@@ -40,6 +43,7 @@ function AppNavigator() {
         <Stack.Screen name="BloodDonation" component={BloodDonationScreen}/>
         <Stack.Screen name="EditMedicine" component={EditMedicine}/>
         <Stack.Screen name="OrganDonations" component={OrganDonations}/>
+        <Stack.Screen name="BookAppointment" component={BookAppointment}/>
         
 
       </Stack.Navigator>

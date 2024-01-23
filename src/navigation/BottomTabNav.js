@@ -38,7 +38,7 @@ const BottomTabNavigator = () => {
           bottom: 0,
           right: 0,
           left: 0,
-          height: 40,
+          height: 50,
         },
 
         tabBarIcon: ({ color, size, focused }) => {

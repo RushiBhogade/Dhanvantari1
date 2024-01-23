@@ -6,7 +6,7 @@ import {
   Button,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  TouchableOpacity,Alert
 } from "react-native";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import CheckBox from "@react-native-community/checkbox";
@@ -50,6 +50,7 @@ useEffect(() => {
       if (response.ok) {
         const data = await response.json();
         setHospitalData(data);
+        
       } else {
         console.error(
           "Error fetching hospital data:",
@@ -109,6 +110,10 @@ const handleOrganDonation = async () => {
       // Assuming the API response contains a 'msg' field indicating success
       if (responseData.msg === "Organ donation details added successfully") {
         // Navigate to the home screen upon successful submission
+        Alert.alert(
+            "Organ Donation Form Submitted",
+            "Thank you for your donation!"
+          );
         navigation.navigate("Tabs"); // Replace 'Home' with the name of your home screen
       } else {
         // Handle error, show an error message

@@ -28,7 +28,7 @@ const HomeScreen = ({ navigation }) => {
 
   const navigateToMentalHealthChatbot = () => {
     // Navigate to the Mental Health Support (chatbot) screen
-    navigation.navigate('Chatbot', { category: 'Mental Health Support' });
+    navigation.navigate('Mental Health Bot', { category: 'Mental Health Support' });
   };
 
   const navigateToDoctorAppointments = () => {

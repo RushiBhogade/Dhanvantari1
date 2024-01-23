@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, ScrollView, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
 
-const ChatbotScreen = () => {
+const ChatbotScreenM = () => {
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState('');
   const scrollViewRef = useRef();
@@ -28,7 +28,7 @@ const ChatbotScreen = () => {
 
     try {
       // Make API request to the chatbot API with user input
-      const response = await fetch('https://healthbybyteblitz.twilightparadox.com/api/auth/chat', {
+      const response = await fetch('https://healthbybyteblitz.twilightparadox.com/api/auth/chatm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ const ChatbotScreen = () => {
 
       if (response.ok) {
         const result = await response.json();
-        const message = result.openaiResponse.fulfillmentText;
+        const message = result.fulfillmentText;
 
         // Add assistant's message to the chat
         const assistantMessage = { role: 'assistant', content: message };
@@ -55,7 +55,7 @@ const ChatbotScreen = () => {
   };
 
   return (
-    <ImageBackground source={require('../assets/images/Untitled.png')} // Replace with the path to your background image
+    <ImageBackground source={require('../assets/images/Untitled1.png')} // Replace with the path to your background image
     style={{ flex: 1, resizeMode: 'cover' }}>
     <View style={{ flex: 1, marginBottom: 40 }}>
       {/* Chat messages */}
@@ -127,7 +127,7 @@ const ChatbotScreen = () => {
         <TouchableOpacity
           style={{
             padding: 8,
-            backgroundColor: '#000',
+            backgroundColor: '#4CAF50',
             borderRadius: 8,
           }}
           onPress={sendMessage}
@@ -140,4 +140,4 @@ const ChatbotScreen = () => {
   );
 };
 
-export default ChatbotScreen;
+export default ChatbotScreenM;
